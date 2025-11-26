@@ -26,7 +26,7 @@ class Category(models.Model):
         
     def __str__(self) -> str:
         return self.name
-        
+         
 class Customer(models.Model):
     name = models.TextField("ФИО")
     address = models.TextField("Адрес")
