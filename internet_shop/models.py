@@ -41,8 +41,17 @@ class Customer(models.Model):
         return self.name
 
 class Order(models.Model):
+    order_number = models.IntegerField("Дневной номер заказа")
     date = models.DateField("Дата заказа")
-    status = models.TextField("Статус")
+    status = models.TextField("Статус", choices=[    
+        ('В обработке', 'В обработке'),
+        ('В сборке', 'В сборке'), 
+        ('Собран', 'Собран'),
+        ('Отправлен', 'Отправлен'),
+        ('Доставлен', 'Доставлен'),
+        ('Отменен', 'Отменен'),
+    ], 
+    default='В обработке' )
     customer = models.ForeignKey("Customer", on_delete=models.CASCADE, null=True, verbose_name="Клиент")
     
     class Meta:

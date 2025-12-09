@@ -12,11 +12,20 @@ import axios from "axios";
 import { ref, onBeforeMount, computed } from 'vue';
 import Cookies from 'js-cookie';
 
+const statusOptions = ref([
+  { value: 'В обработке'},
+  { value: 'В сборке' },
+  { value: 'Собран' },
+  { value: 'Отправлен' },
+  { value: 'Доставлен' },
+  { value: 'Отменен' }
+])
+
 const loading = ref(false);
 const orders = ref([]);
 const customers = ref([]);
-const orderToAdd = ref({ date: null, status: '', customer: null });
-const orderToEdit = ref({ id: null, date: null, status: '', customer: null });
+const orderToAdd = ref({ order_number: null, date: null, status: '', customer: null });
+const orderToEdit = ref({ id: null, order_number: null, date: null, status: '', customer: null });
 
 const groupsById = computed(() => {
   const map = {};
@@ -53,7 +62,7 @@ async function onOrderAdd() {
   await fetchOrders();
   await fetchCustomers();
   // Сброс формы
-  orderToAdd.value = { date: null, status: '', customer: null };
+  orderToAdd.value = { order_number: null, date: null, status: '', customer: null };
 }
 
 async function onUpdateOrder() {
@@ -100,6 +109,17 @@ onBeforeMount(async () => {
               <input
                 type="text"
                 class="form-control"
+                v-model="orderToAdd.order_number"
+                required
+              />
+              <label for="floatingInput">Номер заказа</label>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-floating">
+              <input
+                type="text"
+                class="form-control"
                 v-model="orderToAdd.date"
                 required
               />
@@ -108,12 +128,9 @@ onBeforeMount(async () => {
           </div>
           <div class="col">
             <div class="form-floating">
-              <input
-                type="text"
-                class="form-control"
-                v-model="orderToAdd.status"
-                required
-              />
+              <select class="form-select" v-model="orderToAdd.status" required>
+                <option :value="g.value" v-for="g in statusOptions">{{ g.value }}</option>
+              </select>
               <label for="floatingInput">Статус</label>
             </div>
           </div>
@@ -151,7 +168,17 @@ onBeforeMount(async () => {
           </div>
           <div class="modal-body">
             <div class="row">
-              <div class="col-4">
+              <div class="col-3">
+                <div class="form-floating">
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="orderToEdit.order_number"
+                  />
+                  <label for="floatingInput">Номер заказа</label>
+                </div>
+              </div>
+              <div class="col-3">
                 <div class="form-floating">
                   <input
                     type="text"
@@ -161,17 +188,17 @@ onBeforeMount(async () => {
                   <label for="floatingInput">Дата</label>
                 </div>
               </div>
-              <div class="col-4">
+              <div class="col-3">
                 <div class="form-floating">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="orderToEdit.status"
-                  />
+                  <select class="form-select" v-model="orderToEdit.status">
+                    <option :value="g.value" v-for="g in statusOptions">
+                      {{ g.value }}
+                    </option>
+                  </select>
                   <label for="floatingInput">Статус</label>
                 </div>
               </div>
-              <div class="col-4">
+              <div class="col-3">
                 <div class="form-floating">
                   <select class="form-select" v-model="orderToEdit.customer">
                     <option :value="g.id" v-for="g in customers">
@@ -208,6 +235,7 @@ onBeforeMount(async () => {
       <div class="card-body">
         <div class="row align-items-center">
           <div class="col-md-6">
+            <h5 class="card-title text-primary mb-2">Номер заказа: {{ item.order_number }}</h5>
             <h5 class="card-title text-primary mb-2">{{ item.date }}</h5>
             <div class="d-flex align-items-center">
               <span class="badge bg-success me-2">Клиент:</span>
@@ -215,7 +243,7 @@ onBeforeMount(async () => {
             </div>
           </div>
           
-          <div class="col-md-3">
+          <div class="col-md-6">
             <div class="d-flex gap-2 justify-content-end">
               <button
                 class="btn btn-outline-primary btn-lg"

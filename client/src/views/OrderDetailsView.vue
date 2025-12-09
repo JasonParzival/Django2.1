@@ -129,7 +129,7 @@ onBeforeMount(async () => {
           <div class="col-2">
             <div class="form-floating">
               <select class="form-select" v-model="orderDetailToAdd.order" required>
-                <option :value="g.id" v-for="g in orders">{{ g.date }}</option>
+                <option :value="g.id" v-for="g in orders">{{ g.date }} - №{{ g.order_number }}</option>
               </select>
               <label for="floatingInput">Заказ</label>
             </div>
@@ -182,7 +182,7 @@ onBeforeMount(async () => {
                 <div class="form-floating">
                   <select class="form-select" v-model="orderDetailToEdit.order">
                     <option :value="g.id" v-for="g in orders">
-                      {{ g.date }}
+                      {{ g.date }} - №{{ g.order_number }}
                     </option>
                   </select>
                   <label for="floatingInput">Заказ</label>
@@ -227,14 +227,14 @@ onBeforeMount(async () => {
           <div class="col-md-6">
             <h5 class="card-title text-primary mb-2">{{ item.quantity }}</h5>
             <div class="d-flex align-items-center">
-              <span class="badge bg-success me-2">Категория:</span>
-              <span class="text-muted">{{ ordersById[item.order]?.date }}</span>
+              <span class="badge bg-success me-2">Заказ:</span>
+              <span class="text-muted">{{ ordersById[item.order]?.date }} - №{{ ordersById[item.order]?.order_number }}</span>
             </div>
           </div>
           
           <div class="col-md-3">
             <div class="product-meta">
-              <span class="badge bg-success me-2">Категория:</span>
+              <span class="badge bg-success me-2">Товар:</span>
               <span class="text-muted">{{ productsById[item.product]?.name }}</span>
             </div>
           </div>
