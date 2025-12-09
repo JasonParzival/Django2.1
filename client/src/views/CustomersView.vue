@@ -3,107 +3,85 @@
 </template>
 
 <script setup>
-import ProductList from '../components/products/ProductList.vue'
+import ProductList from '../components/customers/CustomerList.vue'
 </script>-->
 
-<!-- ProductsComponent.vue -->
 <script setup>
 import axios from "axios";
 import { ref, onBeforeMount, computed } from 'vue';
 import Cookies from 'js-cookie';
 
 const loading = ref(false);
-const products = ref([]);
-const categories = ref([]);
-const productToAdd = ref({ name: '', price: null, description: '', quantity: null, category: null });
-const productToEdit = ref({ id: null, name: '', price: null, description: '', quantity: null, category: null });
-
-const groupsById = computed(() => {
-  const map = {};
-  categories.value.forEach(cat => {
-    map[cat.id] = cat;
-  });
-  return map;
-});
+const customers = ref([]);
+const customerToAdd = ref({ name: '', address: '', phone_number: '', email: '' });
+const customerToEdit = ref({ id: null, name: '', address: '', phone_number: '', email: '' });
 
 onBeforeMount(() => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get("csrftoken");
 })
 
-async function fetchProducts() {
+async function fetchCustomers() {
   loading.value = true;
-  const r = await axios.get("/api/products/");
-  console.log(r.data)
-  products.value = r.data;
+  const r = await axios.get("/api/customers/");
+  customers.value = r.data;
   loading.value = false;
 }
 
-async function fetchCategories() {
-  loading.value = true;
-  const r = await axios.get("/api/categories/");
-  console.log(r.data)
-  categories.value = r.data;
-  loading.value = false;
-}
-
-async function onProductAdd() {
-  await axios.post("/api/products/", {
-    ...productToAdd.value,
+async function onCustomerAdd() {
+  await axios.post("/api/customers/", {
+    ...customerToAdd.value,
   });
-  await fetchProducts();
-  await fetchCategories();
+  await fetchCustomers();
   // Сброс формы
-  productToAdd.value = { name: '', price: null, description: '', quantity: null, category: null };
+  customerToAdd.value = { name: '', address: '', phone_number: '', email: '' };
 }
 
-async function onUpdateProduct() {
-  await axios.put(`/api/products/${productToEdit.value.id}/`, {
-    ...productToEdit.value,
+async function onUpdateCustomer() {
+  await axios.put(`/api/customers/${customerToEdit.value.id}/`, {
+    ...сustomerToEdit.value,
   });
-  await fetchProducts();
+  await fetchCustomers();
 }
 
-async function onRemoveClick(product) {
-  await axios.delete(`/api/products/${product.id}/`);
-  await fetchProducts(); 
+async function onRemoveClick(customer) {
+  await axios.delete(`/api/customers/${customer.id}/`);
+  await fetchCustomers(); 
 }
 
-async function onProductEditClick(product) {
-  productToEdit.value = { ...product };
+async function onCustomerEditClick(customer) {
+  сustomerToEdit.value = { ...customer };
 }
 
 async function onLoadClick() {
-  await fetchProducts()
-  await fetchCategories()
+  await fetchCustomers()
 }
 
 onBeforeMount(async () => {
-  await fetchProducts()
-  await fetchCategories()
+  await fetchCustomers()
 })
 </script>
 
 <template>
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1>Товары</h1>
+      <h1>Клиенты</h1>
       <button @click="onLoadClick" class="btn btn-outline-primary">
         Обновить!
       </button>
     </div>
 
     <div class="container mb-5">
-      <form @submit.prevent.stop="onProductAdd">
+      <form @submit.prevent.stop="onCustomerAdd">
         <div class="row">
           <div class="col">
             <div class="form-floating">
               <input
                 type="text"
                 class="form-control"
-                v-model="productToAdd.name"
+                v-model="customerToAdd.name"
                 required
               />
-              <label for="floatingInput">Название</label>
+              <label for="floatingInput">ФИО</label>
             </div>
           </div>
           <div class="col">
@@ -111,10 +89,10 @@ onBeforeMount(async () => {
               <input
                 type="text"
                 class="form-control"
-                v-model="productToAdd.price"
+                v-model="customerToAdd.address"
                 required
               />
-              <label for="floatingInput">Цена</label>
+              <label for="floatingInput">Адрес</label>
             </div>
           </div>
           <div class="col">
@@ -122,10 +100,10 @@ onBeforeMount(async () => {
               <input
                 type="text"
                 class="form-control"
-                v-model="productToAdd.description"
+                v-model="customerToAdd.phone_number"
                 required
               />
-              <label for="floatingInput">Описание</label>
+              <label for="floatingInput">Номер телефона</label>
             </div>
           </div>
           <div class="col">
@@ -133,18 +111,10 @@ onBeforeMount(async () => {
               <input
                 type="text"
                 class="form-control"
-                v-model="productToAdd.quantity"
+                v-model="customerToAdd.email"
                 required
               />
-              <label for="floatingInput">Количество</label>
-            </div>
-          </div>
-          <div class="col-auto">
-            <div class="form-floating">
-              <select class="form-select" v-model="productToAdd.category" required>
-                <option :value="g.id" v-for="g in categories">{{ g.name }}</option>
-              </select>
-              <label for="floatingInput">Категория</label>
+              <label for="floatingInput">Электронная почта</label>
             </div>
           </div>
           <div class="col-auto">
@@ -157,7 +127,7 @@ onBeforeMount(async () => {
     </div>
     
 
-    <div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal fade" id="editCustomerModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
         <div class="modal-content pb-3">
           <div class="modal-header">
@@ -178,19 +148,9 @@ onBeforeMount(async () => {
                   <input
                     type="text"
                     class="form-control"
-                    v-model="productToEdit.name"
+                    v-model="customerToEdit.name"
                   />
-                  <label for="floatingInput">Название</label>
-                </div>
-              </div>
-              <div class="col-2">
-                <div class="form-floating">
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="productToEdit.price"
-                  />
-                  <label for="floatingInput">Цена</label>
+                  <label for="floatingInput">ФИО</label>
                 </div>
               </div>
               <div class="col-3">
@@ -198,29 +158,29 @@ onBeforeMount(async () => {
                   <input
                     type="text"
                     class="form-control"
-                    v-model="productToEdit.description"
+                    v-model="customerToEdit.address"
                   />
-                  <label for="floatingInput">Описание</label>
+                  <label for="floatingInput">Адрес</label>
                 </div>
               </div>
-              <div class="col-2">
+              <div class="col-3">
                 <div class="form-floating">
                   <input
                     type="text"
                     class="form-control"
-                    v-model="productToEdit.quantity"
+                    v-model="customerToEdit.phone_number"
                   />
-                  <label for="floatingInput">Количество</label>
+                  <label for="floatingInput">Номер телефона</label>
                 </div>
               </div>
-              <div class="col-2">
+              <div class="col-3">
                 <div class="form-floating">
-                  <select class="form-select" v-model="productToEdit.category">
-                    <option :value="g.id" v-for="g in categories">
-                      {{ g.name }}
-                    </option>
-                  </select>
-                  <label for="floatingInput">Группа</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="customerToEdit.email"
+                  />
+                  <label for="floatingInput">Электронный адрес</label>
                 </div>
               </div>
             </div>
@@ -237,7 +197,7 @@ onBeforeMount(async () => {
               data-bs-dismiss="modal"
               type="button"
               class="btn btn-primary"
-              @click="onUpdateProduct"
+              @click="onUpdateCustomer"
             >
               Сохранить
             </button>
@@ -246,21 +206,17 @@ onBeforeMount(async () => {
       </div>
     </div>
 
-    <div v-for="item in products" class="product-item card mb-3 shadow-sm">
+    <div v-for="item in customers" class="customer-item card mb-3 shadow-sm">
       <div class="card-body">
         <div class="row align-items-center">
           <div class="col-md-6">
             <h5 class="card-title text-primary mb-2">{{ item.name }}</h5>
-            <div class="d-flex align-items-center">
-              <span class="badge bg-success me-2">Категория:</span>
-              <span class="text-muted">{{ groupsById[item.category]?.name }}</span>
-            </div>
           </div>
           
           <div class="col-md-3">
             <div class="product-meta">
-              <small class="text-muted d-block">Цена: {{ item.price }} ₽</small>
-              <small class="text-muted d-block">В наличии: {{ item.quantity }} шт.</small>
+              <small class="text-muted d-block">Адрес: {{ item.address }}</small>
+              <small class="text-muted d-block">Номер телефона: {{ item.phone_number }}</small>
             </div>
           </div>
           
@@ -268,9 +224,9 @@ onBeforeMount(async () => {
             <div class="d-flex gap-2 justify-content-end">
               <button
                 class="btn btn-outline-primary btn-lg"
-                @click="onProductEditClick(item)"
+                @click="onCustomerEditClick(item)"
                 data-bs-toggle="modal"
-                data-bs-target="#editProductModal"
+                data-bs-target="#editCustomerModal"
                 title="Редактировать"
               >
                 <i class="bi bi-pen-fill"></i>
@@ -286,8 +242,8 @@ onBeforeMount(async () => {
           </div>
         </div>
         
-        <div v-if="item.description" class="mt-3">
-          <p class="card-text text-muted small">{{ item.description }}</p>
+        <div v-if="item.email" class="mt-3">
+          <p class="card-text text-muted small">{{ item.email }}</p>
         </div>
       </div>
     </div>
@@ -295,11 +251,11 @@ onBeforeMount(async () => {
 </template>
 
 <style scoped>
-.product-item {
+.customer-item {
   transition: transform 0.2s;
 }
 
-.product-item:hover {
+.customer-item:hover {
   transform: translateY(-2px);
 }
 

@@ -3,85 +3,107 @@
 </template>
 
 <script setup>
-import ProductList from '../components/categories/CategoryList.vue'
+import ProductList from '../components/products/ProductList.vue'
 </script>-->
 
+<!-- ProductsComponent.vue -->
 <script setup>
 import axios from "axios";
 import { ref, onBeforeMount, computed } from 'vue';
 import Cookies from 'js-cookie';
 
 const loading = ref(false);
-const categories = ref([]);
-const categoryToAdd = ref({ name: '', description: '' })
-const categoryToEdit = ref({ id: null, name: '', description: '' })
+const orders = ref([]);
+const customers = ref([]);
+const orderToAdd = ref({ date: null, status: '', customer: null });
+const orderToEdit = ref({ id: null, date: null, status: '', customer: null });
+
+const groupsById = computed(() => {
+  const map = {};
+  customers.value.forEach(cat => {
+    map[cat.id] = cat;
+  });
+  return map;
+});
 
 onBeforeMount(() => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get("csrftoken");
 })
 
-async function fetchCategories() {
-  loading.value = true
-  const r = await axios.get("/api/categories/")
-  categories.value = r.data
-  loading.value = false
+async function fetchOrders() {
+  loading.value = true;
+  const r = await axios.get("/api/orders/");
+  console.log(r.data)
+  orders.value = r.data;
+  loading.value = false;
 }
 
-async function onCategoryAdd() {
-  await axios.post("/api/categories/", {
-    ...categoryToAdd.value,
+async function fetchCustomers() {
+  loading.value = true;
+  const r = await axios.get("/api/customers/");
+  console.log(r.data)
+  customers.value = r.data;
+  loading.value = false;
+}
+
+async function onOrderAdd() {
+  await axios.post("/api/orders/", {
+    ...orderToAdd.value,
   });
-  await fetchCategories();
+  await fetchOrders();
+  await fetchCustomers();
   // Сброс формы
-  categoryToAdd.value = { name: '', description: '' };
+  orderToAdd.value = { date: null, status: '', customer: null };
 }
 
-async function onUpdateCategory() {
-  await axios.put(`/api/categories/${categoryToEdit.value.id}/`, {
-    ...categoryToEdit.value,
+async function onUpdateOrder() {
+  await axios.put(`/api/orders/${orderToEdit.value.id}/`, {
+    ...orderToEdit.value,
   });
-  await fetchCategories();
+  await fetchOrders();
 }
 
-async function onRemoveClick(category) {
-  await axios.delete(`/api/categories/${category.id}/`);
-  await fetchCategories(); 
+async function onRemoveClick(order) {
+  await axios.delete(`/api/orders/${order.id}/`);
+  await fetchOrders(); 
 }
 
-async function onCategoryEditClick(category) {
-  categoryToEdit.value = { ...category };
+async function onOrderEditClick(order) {
+  orderToEdit.value = { ...order };
 }
 
 async function onLoadClick() {
-  await fetchCategories()
+  await fetchOrders();
+  await fetchCustomers();
 }
 
 onBeforeMount(async () => {
-  await fetchCategories()
+  await fetchOrders();
+  await fetchCustomers();
 })
 </script>
 
 <template>
   <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1>Категории</h1>
+      <h1>Заказы</h1>
       <button @click="onLoadClick" class="btn btn-outline-primary">
         Обновить!
       </button>
     </div>
 
     <div class="container mb-5">
-      <form @submit.prevent.stop="onCategoryAdd">
+      <form @submit.prevent.stop="onOrderAdd">
         <div class="row">
           <div class="col">
             <div class="form-floating">
               <input
                 type="text"
                 class="form-control"
-                v-model="categoryToAdd.name"
+                v-model="orderToAdd.date"
                 required
               />
-              <label for="floatingInput">Название</label>
+              <label for="floatingInput">Дата</label>
             </div>
           </div>
           <div class="col">
@@ -89,10 +111,18 @@ onBeforeMount(async () => {
               <input
                 type="text"
                 class="form-control"
-                v-model="categoryToAdd.description"
+                v-model="orderToAdd.status"
                 required
               />
-              <label for="floatingInput">Описание</label>
+              <label for="floatingInput">Статус</label>
+            </div>
+          </div>
+          <div class="col-auto">
+            <div class="form-floating">
+              <select class="form-select" v-model="orderToAdd.customer" required>
+                <option :value="g.id" v-for="g in customers">{{ g.name }}</option>
+              </select>
+              <label for="floatingInput">Клиенты</label>
             </div>
           </div>
           <div class="col-auto">
@@ -105,7 +135,7 @@ onBeforeMount(async () => {
     </div>
     
 
-    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal fade" id="editOrderModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
         <div class="modal-content pb-3">
           <div class="modal-header">
@@ -121,24 +151,34 @@ onBeforeMount(async () => {
           </div>
           <div class="modal-body">
             <div class="row">
-              <div class="col-6">
+              <div class="col-4">
                 <div class="form-floating">
                   <input
                     type="text"
                     class="form-control"
-                    v-model="categoryToEdit.name"
+                    v-model="orderToEdit.date"
                   />
-                  <label for="floatingInput">Название</label>
+                  <label for="floatingInput">Дата</label>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-4">
                 <div class="form-floating">
                   <input
                     type="text"
                     class="form-control"
-                    v-model="categoryToEdit.description"
+                    v-model="orderToEdit.status"
                   />
-                  <label for="floatingInput">Описание</label>
+                  <label for="floatingInput">Статус</label>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="form-floating">
+                  <select class="form-select" v-model="orderToEdit.customer">
+                    <option :value="g.id" v-for="g in customers">
+                      {{ g.name }}
+                    </option>
+                  </select>
+                  <label for="floatingInput">Клиенты</label>
                 </div>
               </div>
             </div>
@@ -155,7 +195,7 @@ onBeforeMount(async () => {
               data-bs-dismiss="modal"
               type="button"
               class="btn btn-primary"
-              @click="onUpdateCategory"
+              @click="onUpdateOrder"
             >
               Сохранить
             </button>
@@ -164,21 +204,24 @@ onBeforeMount(async () => {
       </div>
     </div>
 
-    <div v-for="item in categories" class="сategory-item card mb-3 shadow-sm">
+    <div v-for="item in orders" class="order-item card mb-3 shadow-sm">
       <div class="card-body">
         <div class="row align-items-center">
-
           <div class="col-md-6">
-            <h5 class="card-title text-primary mb-2">{{ item.name }}</h5>
+            <h5 class="card-title text-primary mb-2">{{ item.date }}</h5>
+            <div class="d-flex align-items-center">
+              <span class="badge bg-success me-2">Клиент:</span>
+              <span class="text-muted">{{ groupsById[item.customer]?.name }}</span>
+            </div>
           </div>
           
-          <div class="col-md-6">
+          <div class="col-md-3">
             <div class="d-flex gap-2 justify-content-end">
               <button
                 class="btn btn-outline-primary btn-lg"
-                @click="onCategoryEditClick(item)"
+                @click="onOrderEditClick(item)"
                 data-bs-toggle="modal"
-                data-bs-target="#editCategoryModal"
+                data-bs-target="#editOrderModal"
                 title="Редактировать"
               >
                 <i class="bi bi-pen-fill"></i>
@@ -194,8 +237,8 @@ onBeforeMount(async () => {
           </div>
         </div>
         
-        <div v-if="item.description" class="mt-3">
-          <p class="card-text text-muted small">{{ item.description }}</p>
+        <div v-if="item.status" class="mt-3">
+          <p class="card-text text-muted small">{{ item.status }}</p>
         </div>
       </div>
     </div>
@@ -203,11 +246,11 @@ onBeforeMount(async () => {
 </template>
 
 <style scoped>
-.сategory-item {
+.order-item {
   transition: transform 0.2s;
 }
 
-.сategory-item:hover {
+.order-item:hover {
   transform: translateY(-2px);
 }
 

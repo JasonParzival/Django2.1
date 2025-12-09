@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import ProductsView from '../views/ProductsView.vue'
 import CategoriesView from '../views/CategoriesView.vue'
+import CustomersView from '../views/CustomersView.vue'
+import OrdersView from '../views/OrdersView.vue'
+import OrderDetailsView from '../views/OrderDetailsView.vue'
 // Импортируйте другие views
 
 const routes = [
@@ -18,12 +21,21 @@ const routes = [
     name: 'categories',
     component: CategoriesView
   },
-  // Добавьте маршруты для других моделей
-  // {
-  //   path: '/users',
-  //   name: 'users',
-  //   component: UsersView
-  // }
+  {
+    path: '/customers',
+    name: 'customers',
+    component: CustomersView
+  },
+  {
+    path: '/orders',
+    name: 'orders',
+    component: OrdersView
+  },
+  {
+    path: '/orderDetails',
+    name: 'orderDetails',
+    component: OrderDetailsView
+  },
 ]
 
 const router = createRouter({
